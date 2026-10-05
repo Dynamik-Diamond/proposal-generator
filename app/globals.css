@@ -1,0 +1,136 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Project tokens (see DESIGN.md) */
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-rule: var(--rule);
+  --color-brand: var(--accent-brand);
+  --color-brand-contrast: var(--accent-contrast);
+  --color-status-sent: var(--status-sent);
+  --color-status-viewed: var(--status-viewed);
+  --color-status-expired: var(--status-expired);
+  --color-gilt: var(--gilt);
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-manrope);
+  --font-heading: var(--font-fraunces);
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* shadcn mappings */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.75);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+}
+
+:root,
+.paper {
+  --paper: #f6f2ea;
+  --surface: #fbf8f2;
+  --ink: #1c1a17;
+  --ink-muted: #5e574d;
+  --rule: #ddd5c7;
+  --accent-brand: #2f5d46;
+  --accent-contrast: #f6f2ea;
+  --status-sent: #24406b;
+  --status-viewed: #8a5a0b;
+  --status-expired: #7a2e2a;
+  --gilt: #c9a227;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent-brand);
+  --primary-foreground: var(--accent-contrast);
+  --secondary: #ece6da;
+  --secondary-foreground: var(--ink);
+  --muted: #ece6da;
+  --muted-foreground: var(--ink-muted);
+  --accent: #ece6da;
+  --accent-foreground: var(--ink);
+  --destructive: #a3312b;
+  --border: var(--rule);
+  --input: #cfc6b6;
+  --ring: var(--accent-brand);
+  --radius: 0.25rem;
+}
+
+/* Dashboard follows the OS theme; the public proposal (.paper) always stays light. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #171512;
+    --surface: #1f1c18;
+    --ink: #ece6da;
+    --ink-muted: #a89f91;
+    --rule: #34302a;
+    --accent-brand: #7fb596;
+    --accent-contrast: #12100e;
+    --status-sent: #8fb0e0;
+    --status-viewed: #e0b15e;
+    --status-expired: #e08a83;
+    --secondary: #2a2621;
+    --muted: #2a2621;
+    --accent: #2a2621;
+    --destructive: #e0645b;
+    --input: #3d3830;
+  }
+}
+
+.paper {
+  color-scheme: light;
+}
+
+.accent-oxblood {
+  --accent-brand: #7a2e2a;
+}
+.accent-inkblue {
+  --accent-brand: #24406b;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
