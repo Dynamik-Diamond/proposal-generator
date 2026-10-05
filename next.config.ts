@@ -1,22 +1,7 @@
 import type { NextConfig } from "next";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const isDev = process.env.NODE_ENV !== "production";
-
-const csp = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  // canvas-confetti renders in a Web Worker created from a blob: URL.
-  "worker-src 'self' blob:",
-  `connect-src 'self' ${supabaseUrl} ${supabaseUrl.replace("https://", "wss://")}`.trim(),
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "object-src 'none'",
-].join("; ");
+// Page CSP is set per request (with a nonce) in middleware.ts; API routes get a locked-down one here.
+const apiCsp = "default-src 'none'; frame-ancestors 'none'";
 
 const nextConfig: NextConfig = {
   // E2E tests build into a separate folder so they never clobber a running dev server's .next.
@@ -28,7 +13,6 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: csp },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -36,6 +20,7 @@ const nextConfig: NextConfig = {
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
         ],
       },
+      { source: "/api/:path*", headers: [{ key: "Content-Security-Policy", value: apiCsp }] },
       // Public proposal links are private by possession; keep them out of caches and referrers.
       { source: "/p/:token*", headers: [{ key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }] },
     ];

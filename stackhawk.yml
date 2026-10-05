@@ -1,0 +1,48 @@
+# HawkScan config. Run locally against a production build:
+#   node stackhawk/prepare.mjs && source .hawk.env
+#   NEXT_DIST_DIR=.next-scan NEXT_PUBLIC_APP_URL=http://localhost:3200 npx next build && NEXT_DIST_DIR=.next-scan npx next start -p 3200
+#   hawk scan stackhawk.yml
+# Assumptions (recorded per discovery): single Next.js surface (SSR pages + JSON route handlers),
+# no served OpenAPI spec (Next.js has no route-handler generator) so the spec is hand-derived,
+# owner mutations are server actions and not in the spec.
+app:
+  applicationId: ${APP_ID:8974c669-d108-421f-8f20-8f2da2e75790}
+  env: ${STACKHAWK_ENV:Development}
+  host: ${APP_HOST:http://localhost:3200}
+  openApiConf:
+    filePath: stackhawk/openapi.yaml
+    customVariables:
+      - field: token
+        values:
+          - ${HAWK_SCAN_TOKEN}
+      - field: id
+        values:
+          - ${HAWK_SCAN_PROPOSAL_ID}
+  # Signing out would revoke the injected session mid-scan.
+  excludePaths:
+    - "/auth/signout"
+  authentication:
+    # Supabase SSR session cookie for a throwaway, non-privileged test owner (see stackhawk/prepare.mjs).
+    external:
+      values:
+        - type: COOKIE
+          value:
+            name: ${HAWK_SB_COOKIE_NAME}
+            val: ${HAWK_SB_COOKIE_VALUE}
+    testPath:
+      path: /dashboard
+      success: ".*200.*"
+
+hawk:
+  spider:
+    base: true
+
+tags:
+  - name: _STACKHAWK_AGENT
+    value: ${HAWK_AGENT:none}
+  - name: git_origin
+    value: github.com/Dynamik-Diamond/proposal-generator
+  - name: _STACKHAWK_GIT_COMMIT_SHA
+    value: ${COMMIT_SHA:none}
+  - name: _STACKHAWK_GIT_BRANCH
+    value: ${BRANCH_NAME:none}

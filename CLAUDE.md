@@ -9,6 +9,7 @@ PandaDoc-style app: owner signs in, describes a job, AI drafts a proposal from o
 - Unit tests: `npm test` · single file: `npx vitest run tests/unit/status.test.ts`
 - Types: `npm run typecheck` · Lint: `npm run lint`
 - E2E: `npm run e2e` (Playwright; needs a real Supabase project + Stripe test keys in `.env.local`)
+- Security scan (HawkScan, local prod build on :3200): `node stackhawk/prepare.mjs && source .hawk.env`, build/start with `NEXT_DIST_DIR=.next-scan` (see header of `stackhawk.yml`), then `hawk scan stackhawk.yml`. If `hawk validate auth` dies with a gRPC "Network closed" error, run `hawk perch stop` and retry.
 - Stripe webhooks locally: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
 
 ## Stack
@@ -29,6 +30,8 @@ PandaDoc-style app: owner signs in, describes a job, AI drafts a proposal from o
 ## Constraints
 - Never commit `.env.local` or any key. Never send the service-role key to the browser.
 - Never trust amounts or status from the client. Stripe amounts come from `proposals.total_cents`.
+- CSP is built per request with a nonce in `lib/csp.ts` / `middleware.ts` (no `'unsafe-inline'` scripts). Never add third-party script/image hosts; logos are stored as data: URLs.
+- Netlify functions hard-stop at 60s: keep AI calls under the 50s deadline in `lib/ai/`.
 - Signed or paid proposals are immutable (enforced in the app and by a DB trigger). Don't add paths that edit them.
 - Don't invent testimonials, stats or client facts in prompts or UI copy.
 

@@ -43,3 +43,7 @@ tests/e2e/.auth/
 test-results/
 playwright-report/
 /.next-e2e/
+
+# HawkScan local run data
+.hawk.env
+/.next-scan/

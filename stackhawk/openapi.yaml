@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: Proposal Generator (HawkScan surface)
+  version: "1.0"
+  description: >
+    Hand-derived from the Next.js App Router route handlers and pages (app/**/route.ts, app/**/page.tsx).
+    Next.js has no OpenAPI generator for route handlers; keep this in sync when routes change.
+    Owner mutations are Next.js server actions (POST + Next-Action header) and are not listed.
+servers:
+  - url: http://localhost:3200
+paths:
+  /login:
+    get:
+      summary: Sign-in page
+      parameters:
+        - { name: next, in: query, schema: { type: string } }
+        - { name: error, in: query, schema: { type: string } }
+      responses: { "200": { description: OK } }
+  /dashboard:
+    get:
+      summary: Owner dashboard (auth)
+      responses: { "200": { description: OK } }
+  /settings:
+    get:
+      summary: Owner settings (auth)
+      responses: { "200": { description: OK } }
+  /proposals/new:
+    get:
+      summary: New proposal form (auth)
+      responses: { "200": { description: OK } }
+  /proposals/{id}/edit:
+    get:
+      summary: Proposal editor (auth, RLS-scoped)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses: { "200": { description: OK }, "404": { description: Not found } }
+  /auth/callback:
+    get:
+      summary: Supabase auth code exchange
+      parameters:
+        - { name: code, in: query, schema: { type: string } }
+        - { name: next, in: query, schema: { type: string } }
+      responses: { "307": { description: Redirect } }
+  /p/{token}:
+    get:
+      summary: Public proposal page
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+        - { name: paid, in: query, schema: { type: string } }
+        - { name: session_id, in: query, schema: { type: string } }
+      responses: { "200": { description: OK }, "404": { description: Not found } }
+  /api/p/{token}/view:
+    post:
+      summary: Record a client view
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+  /api/p/{token}/sign:
+    post:
+      summary: Client signs the proposal
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, method, agree, content_hash]
+              properties:
+                name: { type: string, example: Scan Client }
+                email: { type: string, format: email, example: scan-client@example.com }
+                method: { type: string, enum: [typed, drawn] }
+                image_data: { type: string, nullable: true }
+                agree: { type: boolean, example: true }
+                content_hash: { type: string, example: "0000000000000000000000000000000000000000000000000000000000000000" }
+      responses: { "200": { description: Signed }, "400": { description: Invalid }, "409": { description: Conflict } }
+  /api/p/{token}/checkout:
+    post:
+      summary: Create a Stripe Checkout session (signed proposals only)
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: Session URL }, "409": { description: Not payable } }
+  /api/p/{token}/status:
+    get:
+      summary: Poll proposal status after checkout
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+        - { name: session_id, in: query, schema: { type: string } }
+      responses: { "200": { description: Status } }
+  /api/p/{token}/pdf:
+    get:
+      summary: Signed proposal PDF
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: PDF }, "409": { description: Not signed } }
+  /api/stripe/webhook:
+    post:
+      summary: Stripe webhook (signature-verified)
+      parameters:
+        - { name: stripe-signature, in: header, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object }
+      responses: { "200": { description: OK }, "400": { description: Bad signature } }

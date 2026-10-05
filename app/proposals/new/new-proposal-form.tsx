@@ -121,7 +121,7 @@ export function NewProposalForm(props: { aiEnabled: boolean; businessName: strin
           </div>
           <div className="space-y-2">
             <Label htmlFor="pasted">Paste Claude&apos;s reply</Label>
-            <Textarea id="pasted" name="pasted" rows={8} disabled={pending} className="font-mono text-xs" placeholder="```json&#10;{ &quot;title&quot;: … }&#10;```" />
+            <Textarea id="pasted" name="pasted" rows={8} disabled={pending} className="font-mono text-xs" placeholder={"```json\n{ \"title\": … }\n```"} />
           </div>
         </div>
       )}

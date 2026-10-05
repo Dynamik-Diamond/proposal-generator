@@ -32,8 +32,18 @@ export function SettingsForm({ profile }: { profile: Profile }) {
         <p className="text-sm text-ink-muted">We email you here when a client opens, signs or pays.</p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="logo_url">Logo URL (optional)</Label>
-        <Input id="logo_url" name="logo_url" type="url" defaultValue={profile.logo_url ?? ""} className="h-10" placeholder="https://…" />
+        <Label htmlFor="logo">Logo (optional)</Label>
+        {profile.logo_url && (
+          <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={profile.logo_url} alt="Current logo" className="h-10 w-auto max-w-40 object-contain" />
+            <label className="flex items-center gap-2 text-sm text-ink-muted">
+              <input type="checkbox" name="remove_logo" className="size-4 accent-[var(--accent-brand)]" /> Remove logo
+            </label>
+          </div>
+        )}
+        <Input id="logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp" className="h-10 py-2" />
+        <p className="text-sm text-ink-muted">PNG, JPEG or WebP, up to 300 KB. Shown on the cover of your proposals.</p>
       </div>
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium">Accent colour</legend>
@@ -52,7 +62,7 @@ export function SettingsForm({ profile }: { profile: Profile }) {
       </fieldset>
       <div className="space-y-2">
         <Label htmlFor="default_terms">Standard terms</Label>
-        <Textarea id="default_terms" name="default_terms" defaultValue={profile.default_terms} rows={8} placeholder="- This proposal is valid for 30 days.&#10;- Payment is due in full on acceptance." />
+        <Textarea id="default_terms" name="default_terms" defaultValue={profile.default_terms} rows={8} placeholder={"- This proposal is valid for 30 days.\n- Payment is due in full on acceptance."} />
         <p className="text-sm text-ink-muted">Used as the starting point for the Terms section of every new proposal.</p>
       </div>
       </div>

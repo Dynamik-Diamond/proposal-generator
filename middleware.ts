@@ -1,11 +1,32 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { buildCsp, newNonce } from "@/lib/csp";
 
 const PROTECTED = ["/dashboard", "/proposals", "/settings"];
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  // Per-request nonce: Next.js reads it from the request's CSP header and stamps it on its scripts.
+  const nonce = newNonce();
+  const csp = buildCsp(nonce, {
+    dev: process.env.NODE_ENV !== "production",
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  });
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
 
+  const next = () => NextResponse.next({ request: { headers: requestHeaders } });
+  const withCsp = (res: NextResponse) => {
+    res.headers.set("Content-Security-Policy", csp);
+    return res;
+  };
+
+  const path = request.nextUrl.pathname;
+  const isProtected = PROTECTED.some((p) => path === p || path.startsWith(`${p}/`));
+  // Only owner routes need the session; public proposal pages skip the Supabase round trip.
+  if (!isProtected && path !== "/login" && path !== "/") return withCsp(next());
+
+  let response = next();
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
       getAll() {
@@ -13,7 +34,7 @@ export async function middleware(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
+        response = next();
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       },
     },
@@ -23,22 +44,22 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const path = request.nextUrl.pathname;
-  if (!user && PROTECTED.some((p) => path === p || path.startsWith(`${p}/`))) {
+  if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = `?next=${encodeURIComponent(path)}`;
-    return NextResponse.redirect(url);
+    return withCsp(NextResponse.redirect(url));
   }
   if (user && (path === "/login" || path === "/")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";
-    return NextResponse.redirect(url);
+    return withCsp(NextResponse.redirect(url));
   }
-  return response;
+  return withCsp(response);
 }
 
 export const config = {
-  matcher: ["/", "/login", "/dashboard/:path*", "/proposals/:path*", "/settings/:path*"],
+  // Every page (for the CSP nonce); API routes and static assets are skipped.
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
