@@ -6,7 +6,8 @@ import type { z } from "zod";
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
 
 export async function anthropicJson<T extends z.ZodType>(schema: T, system: string, user: string): Promise<z.infer<T>> {
-  const client = new Anthropic();
+  // Stay inside the hosting platform's 60s function limit (Netlify).
+  const client = new Anthropic({ timeout: 50_000, maxRetries: 0 });
   const response = await client.beta.messages
     .parse({
     model: MODEL,

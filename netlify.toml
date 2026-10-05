@@ -1,0 +1,12 @@
+# Netlify builds Next.js with its OpenNext adapter (auto-installed). Env vars live in the Netlify UI.
+[build]
+  command = "npm run build:netlify"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Skip downloading Playwright browsers during the Netlify install (only needed for local E2E tests).
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
